@@ -1,0 +1,12 @@
+.DS_Store
+.idea
+*.log
+tmp/
+
+bootstrap
+*.zip
+output.txt
+
+iac/terraform/.terraform/*
+terraform.tfstate*
+.env*

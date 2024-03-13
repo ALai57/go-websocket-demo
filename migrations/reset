@@ -1,0 +1,9 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(dirname "$0")
+
+pushd $SCRIPT_DIR
+
+goose postgres "user=$DB_USER dbname=$DB_NAME" reset
+
+popd >/dev/null

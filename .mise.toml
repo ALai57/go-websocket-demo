@@ -1,0 +1,10 @@
+[env]
+DB_HOST='localhost'
+DB_PORT='5432'
+DB_USER='go_test_lambda'
+DB_PASSWORD='go_test_lambda'
+LOG_LEVEL='DEBUG'
+DB_NAME='go_test_lambda'
+
+[tools]
+go = '1.22'
