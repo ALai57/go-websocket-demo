@@ -37,6 +37,9 @@ var (
 	space   = []byte{' '}
 )
 
+// /////////////////////////////////////////////////////////////////
+// HTTP adapter
+// /////////////////////////////////////////////////////////////////
 func DecodeWebsocketRequest(senderAddr string, s string) (websocket_api.Command, error) {
 	in := make(map[string]interface{})
 	err := json.Unmarshal([]byte(s), &in)
@@ -58,6 +61,15 @@ func DecodeWebsocketRequest(senderAddr string, s string) (websocket_api.Command,
 			}
 			tmp.From = senderAddr
 			req = tmp
+		case "whoall":
+			tmp := websocket_api.WhoAll{}
+			err := json.Unmarshal([]byte(s), &tmp)
+			if err != nil {
+				slog.Error(fmt.Sprintf("Error unmarshaling Broadcast message: %v", err))
+			}
+			tmp.From = senderAddr
+			req = tmp
+
 		}
 		slog.Debug(fmt.Sprintf("Decoded action %v", spew.Sdump(req)))
 	}
@@ -116,7 +128,7 @@ func outboundMessageWriter(s *websocket_api.Service, conn *websocket.Conn) {
 	}()
 
 	for {
-		c := publisher.(*ChannelPublisher).channel
+		c := publisher.(*LocalUser).channel
 		select {
 		case message, ok := <-c:
 			slog.Debug(fmt.Sprintf("Reading from channel"))
@@ -181,6 +193,7 @@ func ServeWebSocket(s *websocket_api.Service) http.Handler {
 		slog.Debug(fmt.Sprintf("Connection: %v", conn.NetConn().LocalAddr()))
 
 		senderAddr := conn.RemoteAddr().String()
+
 		s.SocketMgr.Create(senderAddr)
 
 		go inboundMessageReader(s, conn)
@@ -204,31 +217,65 @@ func NewRouter(svc *websocket_api.Service) *mux.Router {
 	return router
 }
 
-type InMemorySocketManager struct {
-	DB map[string]websocket_api.MessagePusher
-}
-
-type ChannelPublisher struct {
+// /////////////////////////////////////////////////////////////////
+// Custom data types
+// /////////////////////////////////////////////////////////////////
+type LocalUser struct {
+	address string `json:"Address"`
+	name    string `json:"Name"`
 	channel chan string
 }
 
-func (cp *ChannelPublisher) Send(s string) error {
+func (lu *LocalUser) Address() string {
+	return lu.address
+}
+
+func (lu *LocalUser) Name() string {
+	return "Unimplemented"
+}
+
+func (lu *LocalUser) SendMessage(s string) error {
 	slog.Info(fmt.Sprintf("Sending Message '%v'", s))
-	cp.channel <- s
+	lu.channel <- s
 	return nil
 }
 
-func NewChannelPublisher() ChannelPublisher {
-	return ChannelPublisher{
-		channel: make(chan string),
+func (lu *LocalUser) MarshalJSON() ([]byte, error) {
+	result := map[string]string{
+		"Name":    "Unidentified user",
+		"Address": "Unknown",
 	}
 
+	if lu.name != "" {
+		result["Name"] = lu.name
+	}
+
+	if lu.address != "" {
+		result["Address"] = lu.address
+	}
+
+	return json.Marshal(result)
 }
 
-func (memSM *InMemorySocketManager) Create(id string) (websocket_api.MessagePusher, error) {
-	slog.Info(fmt.Sprintf("Creating connection %v", id))
-	publisher := NewChannelPublisher()
-	memSM.DB[id] = &publisher
+func NewLocalUser(addr string) LocalUser {
+	return LocalUser{
+		address: addr,
+		channel: make(chan string),
+	}
+}
+
+// /////////////////////////////////////////////////////////////////
+// Manage Websocket connections
+// Different in HTTP vs Lambda
+// /////////////////////////////////////////////////////////////////
+type InMemorySocketManager struct {
+	DB map[string]websocket_api.Messageable
+}
+
+func (memSM *InMemorySocketManager) Create(addr string) (websocket_api.Messageable, error) {
+	slog.Info(fmt.Sprintf("Creating connection %v", addr))
+	publisher := NewLocalUser(addr)
+	memSM.DB[addr] = &publisher
 	return &publisher, nil
 }
 
@@ -236,22 +283,32 @@ func (memSM *InMemorySocketManager) Delete(id string) error {
 	return nil
 }
 
-func (memSM *InMemorySocketManager) GetLiveConnections() ([]websocket_api.MessagePusher, error) {
+func (memSM *InMemorySocketManager) GetConnections() ([]websocket_api.Messageable, error) {
 	slog.Info("Getting Live Connections from connection manager")
 
-	var results []websocket_api.MessagePusher
+	var results []websocket_api.Messageable
 	for _, c := range memSM.DB {
 		results = append(results, c)
 	}
 	return results, nil
 }
 
+func (memSM *InMemorySocketManager) Find(addr string) (websocket_api.Messageable, bool) {
+	slog.Info("Looking up connection...")
+
+	result, exists := memSM.DB[addr]
+	return result, exists
+}
+
+// /////////////////////////////////////////////////////////////////
+// Main
+// /////////////////////////////////////////////////////////////////
 func main() {
 	slog.Info("Starting up Web server on port 7002")
 
 	svc := websocket_api.NewService()
 	socketMgr := InMemorySocketManager{
-		DB: map[string]websocket_api.MessagePusher{},
+		DB: map[string]websocket_api.Messageable{},
 	}
 	svc.SocketMgr = &socketMgr
 

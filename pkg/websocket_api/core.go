@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/davecgh/go-spew/spew"
 	_ "github.com/lib/pq"
 )
 
@@ -47,20 +48,17 @@ func NewDB(c *Connection) *sql.DB {
 // ///////////////////////////////////////////////////////
 // XX
 // ///////////////////////////////////////////////////////
-type MessagePusher interface {
-	Send(string) error
+type Messageable interface {
+	Address() string
+	Name() string
+	SendMessage(string) error
 }
 
 type SocketManager interface {
-	Create(string) (MessagePusher, error)
+	Create(string) (Messageable, error)
 	Delete(string) error
-	GetLiveConnections() ([]MessagePusher, error)
-
-	//Send(WSConnection, string) error
-}
-
-type WSConnection struct {
-	ConnectionID string
+	GetConnections() ([]Messageable, error)
+	Find(string) (Messageable, bool)
 }
 
 // ///////////////////////////////////////////////////////
@@ -82,13 +80,38 @@ func (b Broadcast) Exec(s *Service) error {
 	// Broadcast messages....
 	// For each known client, send a message
 
-	liveConnections, _ := s.SocketMgr.GetLiveConnections()
+	liveConnections, _ := s.SocketMgr.GetConnections()
 	slog.Info(fmt.Sprintf("Live Connections: %v", liveConnections))
 	for _, c := range liveConnections {
 		slog.Info(fmt.Sprintf("Messaging to %v", c))
 		msg, _ := json.Marshal(b)
-		c.Send(string(msg))
+		c.SendMessage(string(msg))
 	}
+
+	return nil
+}
+
+type WhoAll struct {
+	Action string        `json:"action"`
+	Users  []Messageable `json:"users"`
+	From   string        `json:"from"`
+}
+
+func (w WhoAll) Exec(s *Service) error {
+	slog.Info("Getting all users!!")
+
+	c, exists := s.SocketMgr.Find(w.From)
+	if !exists {
+		slog.Info(fmt.Sprintf("Could not find sender address: %v", w.From))
+		return nil
+	}
+
+	liveConnections, _ := s.SocketMgr.GetConnections()
+	slog.Info(fmt.Sprintf("Live Connections: %v", spew.Sdump(liveConnections)))
+	w.Users = liveConnections
+
+	resp, _ := json.Marshal(w)
+	c.SendMessage(string(resp))
 
 	return nil
 }
