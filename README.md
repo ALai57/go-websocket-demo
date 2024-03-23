@@ -208,10 +208,6 @@ To start the service with hot reloading:
 air
 ```
 
-## TODO:
-
-Better error messaging when marshaling/unmarshaling doesn't work
-
 ## Migrations
 
 ```sh
@@ -253,5 +249,5 @@ https://docs.aws.amazon.com/apigateway/latest/developerguide/websocket-api-chat-
 
 ## TODO
 
-1: Put a Keycloak Authorizer in front of `$connect`
-2: Expand the handler to handler $connect messages
+1: Expand the handler to handler $connect messages
+2: Put a Keycloak Authorizer in front of `$connect`

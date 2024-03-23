@@ -1,4 +1,9 @@
 #!/usr/bin/env sh
 
-aws lambda update-function-code --function-name go-test-lambda-tf \
---zip-file fileb://go-test-lambda.zip
+SCRIPT_DIR=$(dirname "$0")
+pushd $SCRIPT_DIR/..
+
+aws lambda update-function-code --function-name go-websocket \
+    --zip-file fileb://go-websocket.zip
+
+popd >/dev/null

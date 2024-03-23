@@ -190,8 +190,6 @@ resource "aws_apigatewayv2_stage" "prod" {
   name   = "prod"
 }
 
-
-
 #######################################
 # Permissions
 #######################################
