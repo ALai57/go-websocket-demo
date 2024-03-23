@@ -21,10 +21,10 @@ KCHOST=https://keycloak.andrewslai.com
 REALM=andrewslai
 CLIENT_ID=cli-access
 
-echo "KEYCLOAK_ACCESS_TOKEN=`curl -v \
-  -d "client_id=$CLIENT_ID" -d "client_secret=$KEYCLOAK_CLIENT_SECRET" \
-  -d "username=$KEYCLOAK_USER_NAME" -d "password=$KEYCLOAK_USER_PASSWORD" \
-  -d "grant_type=password" \
-  "$KCHOST/realms/$REALM/protocol/openid-connect/token" | jq -r '.access_token'`"
+export KEYCLOAK_ACCESS_TOKEN=$(curl -s \
+    -d "client_id=$CLIENT_ID" -d "client_secret=$KEYCLOAK_CLIENT_SECRET" \
+    -d "username=$KEYCLOAK_USER_NAME" -d "password=$KEYCLOAK_USER_PASSWORD" \
+    -d "grant_type=password" \
+    "$KCHOST/realms/$REALM/protocol/openid-connect/token" | jq -r '.access_token')
 
-# echo "Exported KEYCLOAK_ACCESS_TOKEN $KEYCLOAK_ACCESS_TOKEN as shell environment variable"
+echo "Exported KEYCLOAK_ACCESS_TOKEN '${KEYCLOAK_ACCESS_TOKEN:0:5}...' as shell environment variable"

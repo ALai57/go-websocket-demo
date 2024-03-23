@@ -7,6 +7,6 @@ bootstrap
 *.zip
 output.txt
 
-iac/terraform/.terraform/*
+terraform/.terraform/*
 terraform.tfstate*
 .env*

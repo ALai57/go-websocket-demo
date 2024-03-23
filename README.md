@@ -220,3 +220,32 @@ goose create <<NAME-HERE>> sql
 
 goose create create-photo-metadata-table sql
 goose -dir migrations postgres "user=$DB_USER dbname=$DB_NAME" reset
+
+## Usage
+
+Local connections
+
+```sh
+air
+./bin/connect
+```
+
+Connecting in prod
+
+```sh
+./bin/connect-api-gw.sh
+```
+
+### Actions
+
+```json
+{ "action": "broadcast", "message": "Hello" }
+```
+
+```json
+{ "action": "whoall" }
+```
+
+# Resources
+
+https://github.com/misikdmytro/go-ws-api-gateway/blob/master/internal/handler/connect.go

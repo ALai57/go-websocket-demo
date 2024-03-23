@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/goombaio/namegenerator"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
@@ -257,9 +258,13 @@ func (lu *LocalUser) MarshalJSON() ([]byte, error) {
 	return json.Marshal(result)
 }
 
+var seed = time.Now().UTC().UnixNano()
+var nameGenerator = namegenerator.NewNameGenerator(seed)
+
 func NewLocalUser(addr string) LocalUser {
 	return LocalUser{
 		address: addr,
+		name:    nameGenerator.Generate(),
 		channel: make(chan string),
 	}
 }

@@ -15,6 +15,7 @@ require (
 
 require (
 	github.com/ggicci/owl v0.7.0 // indirect
+	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/mfridman/interpolate v0.0.2 // indirect
 	github.com/sethvargo/go-retry v0.2.4 // indirect

@@ -12,6 +12,7 @@ import (
 
 func DecodeLambdaRequest(request events.APIGatewayWebsocketProxyRequest) (websocket_api.Command, error) {
 	// Switch statement check for action
+	slog.Info("Decoding Lambda request")
 	return nil, nil
 }
 

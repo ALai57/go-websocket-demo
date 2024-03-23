@@ -6,4 +6,4 @@ GOOS=linux GOARCH=arm64 go build \
     -o bootstrap \
     pkg/main.go
 
-zip go-test-lambda.zip bootstrap
+zip go-websocket.zip bootstrap
