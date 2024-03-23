@@ -2,6 +2,7 @@ package websocket_api
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -144,7 +145,20 @@ func ResolveDBPassword(env *Environment) string {
 	}
 	slog.Info("Retrieved secret")
 
-	return *result.SecretString
+	var secrets = make(map[string]string)
+	err = json.Unmarshal([]byte(*result.SecretString), &secrets)
+	if err != nil {
+		panic(fmt.Sprintf("Error resolving DB password - could not unmarshal secret to JSON '%v'\n"+
+			"Is the secret in key-value pair format?", env.DBPasswordArn))
+	}
+
+	dbPassword, ok := secrets["DB_PASSWORD"]
+	if !ok {
+		panic(fmt.Sprintf("Error resolving DB password -  '%v'\n"+
+			"Does the secret have a `DB_PASSWORD` key?", env.DBPasswordArn))
+	}
+	//spew.Dump(secrets)
+	return dbPassword
 }
 
 func init() {

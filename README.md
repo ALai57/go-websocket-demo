@@ -140,27 +140,15 @@ func (trr TestResponseRecorder) ToResponseRecorder() *httptest.ResponseRecorder 
 
 ## Database
 
-Create new schema and grant permissions only to the specific user in question
-
-```sql
-CREATE SCHEMA go_test_lambda AUTHORIZATION go_test_lambda;
-```
-
-On AWS, I created a new database inside my RDS instance - `go_test_lambda`. This was to share resources, yet still allow my lambda to operate in a clean DB environment
+On AWS, I created a new database inside my RDS instance - `go_websocket`. This was to share resources, yet still allow my lambda to operate in a clean DB environment
 
 First, on AWS, I created a new user for the database and granted the role to my superuser (to allow the superuser to modify the role). Then, I created a new database.
 
 ```sql
-CREATE USER go_test_lambda_user with encrypted password '';
-GRANT go_test_lambda_user to andrewslai;
-CREATE DATABASE go_test_lambda;
-```
-
-Then I logged into the new database using PSQL and granted priviliges to my user.
-
-```sql
-GRANT go_test_lambda_user to andrewslai;
-GRANT ALL PRIVILEGES ON DATABASE go_test_lambda to go_test_lambda_user;
+CREATE USER go_websocket_user with encrypted password '';
+GRANT go_websocket_user to andrewslai;
+CREATE DATABASE go_websocket;
+GRANT ALL PRIVILEGES ON DATABASE go_websocket to go_websocket_user;
 ```
 
 ## Hot reloading

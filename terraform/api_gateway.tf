@@ -2,11 +2,12 @@
 locals {
   lambda_name = "go-websocket"
 
-  db_name = "go_websocket_demo_lambda"
+  db_name = "go_websocket"
   db_host = "andrewslai-postgres.cwvfukjbn65j.us-east-1.rds.amazonaws.com"
   db_port = "5432"
-  db_user = "go_websocket_demo_lambda_user"
+  db_user = "go_websocket_user"
 
+  log_level        = "INFO"
   private_subnet_1 = "subnet-015cf9c5fe2cca75e"
 }
 
@@ -59,10 +60,11 @@ resource "aws_lambda_function" "go_websocket_lambda" {
 
   environment {
     variables = {
-      DB_NAME = local.db_name
-      DB_HOST = local.db_host
-      DB_PORT = local.db_port
-      DB_USER = local.db_user
+      DB_NAME   = local.db_name
+      DB_HOST   = local.db_host
+      DB_PORT   = local.db_port
+      DB_USER   = local.db_user
+      LOG_LEVEL = local.log_level
       #DB_PASSWORD = local.secrets
       DB_PASSWORD_ARN = aws_secretsmanager_secret.secrets.arn
     }
