@@ -249,6 +249,7 @@ Connecting in prod
 # Resources
 
 https://github.com/misikdmytro/go-ws-api-gateway/blob/master/internal/handler/connect.go
+https://docs.aws.amazon.com/apigateway/latest/developerguide/websocket-api-chat-app.html
 
 ## TODO
 

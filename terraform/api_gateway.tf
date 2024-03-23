@@ -150,6 +150,11 @@ resource "aws_apigatewayv2_api" "websocket_api" {
   # https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-lambda-authorizer-output.html
   # https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-api-key-source.html
 }
+# https://github.com/misikdmytro/go-ws-api-gateway/blob/master/internal/handler/connect.go
+
+# NOTE: there is some kind of broken lifecycle issues here - I actually needed
+# to run twice, presumably, because one element depended on one that wasn't yet
+# created
 
 resource "aws_apigatewayv2_integration" "lambda" {
   api_id           = aws_apigatewayv2_api.websocket_api.id
@@ -165,33 +170,11 @@ resource "aws_apigatewayv2_integration" "lambda" {
 
 }
 
-# https://github.com/misikdmytro/go-ws-api-gateway/blob/master/internal/handler/connect.go
-
-# NOTE: there is some kind of broken lifecycle issues here - I actually needed
-# to run twice, presumably, because one element depended on one that wasn't yet
-# created
-resource "aws_apigatewayv2_route" "default" {
+resource "aws_apigatewayv2_route" "routes" {
+  for_each  = toset(["$default", "$connect", "$disconnect"])
   api_id    = aws_apigatewayv2_api.websocket_api.id
-  route_key = "$default"
+  route_key = each.key
   target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
-}
-
-resource "aws_apigatewayv2_route" "connect" {
-  api_id    = aws_apigatewayv2_api.websocket_api.id
-  route_key = "$connect"
-  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
-}
-
-resource "aws_apigatewayv2_route" "disconnect" {
-  api_id    = aws_apigatewayv2_api.websocket_api.id
-  route_key = "$disconnect"
-  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
-}
-
-resource "aws_apigatewayv2_route_response" "ws_messenger_api_connect_route_response" {
-  api_id             = aws_apigatewayv2_api.websocket_api.id
-  route_id           = aws_apigatewayv2_route.connect.id
-  route_response_key = "$default"
 }
 
 resource "aws_apigatewayv2_deployment" "go_websocket_gateway" {
