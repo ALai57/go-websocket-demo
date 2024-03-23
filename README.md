@@ -249,3 +249,8 @@ Connecting in prod
 # Resources
 
 https://github.com/misikdmytro/go-ws-api-gateway/blob/master/internal/handler/connect.go
+
+## TODO
+
+1: Put a Keycloak Authorizer in front of `$connect`
+2: Expand the handler to handler $connect messages
